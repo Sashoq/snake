@@ -1,17 +1,45 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import { update as updateSnake, draw as drawSnake, SNAKE_SPEED, getSnakeHead, snakeIntersection } from './snake.js'
+import { update as updateFood, draw as drawFood } from './food.js'
+import { outsideGrid } from './grid.js'
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+let lastRenderTime = 0
+let gameOver = false
+const gameBoard = document.getElementById('game-board')
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+function main(currentTime) {
+    if (gameOver) {
+      // eslint-disable-next-line no-restricted-globals
+      if (confirm('You lost. Press ok to restart.')) {
+        window.location = '/'
+      }
+      return
+    }
+
+    window.requestAnimationFrame(main)
+    const secondsSinceLastRender = (currentTime - lastRenderTime) / 1000
+    if (secondsSinceLastRender < 1 / SNAKE_SPEED) return 
+    
+    console.log('Render')
+    lastRenderTime = currentTime
+
+    update()
+    draw()
+}
+
+window.requestAnimationFrame(main)
+
+function update() {
+    updateSnake()
+    updateFood()
+    checkDeath()
+}
+
+function draw() {
+    gameBoard.innerHTML = ''
+    drawSnake(gameBoard)
+    drawFood(gameBoard)
+}
+
+function checkDeath() {
+    gameOver = outsideGrid(getSnakeHead()) || snakeIntersection()
+}
